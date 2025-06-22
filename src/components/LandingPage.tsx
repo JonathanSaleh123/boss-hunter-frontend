@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import AIBossBattleUI from './CharacterCreationUI'; // Make sure the path is correct
+import { useRouter } from 'next/navigation';
+import AIBossBattleUI from './CharacterCreationUI'; // This is your character creation UI
 
-// The character interface can be defined here or imported from a types file
+// The character interface remains the same
 interface Character {
   name: string;
   description: string;
@@ -40,6 +41,7 @@ interface Character {
 }
 
 const AIBossBattle: React.FC = () => {
+  const router = useRouter();
   const [character, setCharacter] = useState<Character | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +51,6 @@ const AIBossBattle: React.FC = () => {
   });
 
   useEffect(() => {
-    // This function manipulates the DOM, so it can stay here or be moved.
-    // Keeping it here is fine as it's a side effect.
     createParticles();
   }, []);
 
@@ -58,7 +58,6 @@ const AIBossBattle: React.FC = () => {
     const particlesContainer = document.getElementById('particles');
     if (!particlesContainer) return;
     
-    // Clear existing particles to prevent duplication on re-renders
     particlesContainer.innerHTML = ''; 
     for (let i = 0; i < 15; i++) {
       const particle = document.createElement('div');
@@ -80,7 +79,7 @@ const AIBossBattle: React.FC = () => {
     setCharacter(null);
 
     try {
-      const response = await fetch('/api/create-character', { // Ensure your API route is correct
+      const response = await fetch('/api/create-character', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,13 +107,25 @@ const AIBossBattle: React.FC = () => {
       [e.target.name]: e.target.value
     });
   };
+  
+  // Update the functions to handle navigation
+  const navigateToArena = () => {
+    if (character) {
+      // Save the character object to session storage
+      sessionStorage.setItem('character', JSON.stringify(character));
+      // Navigate to the arena page
+      router.push('/arena');
+    } else {
+      alert('Please generate a character first!');
+    }
+  };
 
   const joinRoom = () => {
-    alert('式 Connecting to existing battle room...\n\nThis feature would connect you to an ongoing battle!');
+    navigateToArena();
   };
 
   const createRoom = () => {
-    alert('噫 Creating new battle room...\n\nThis feature would set up a new arena for you to host!');
+    navigateToArena();
   };
 
   return (

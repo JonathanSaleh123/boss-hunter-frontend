@@ -29,12 +29,12 @@ interface Character {
       total_stat_points: number;
     };
     abilities: string[];
-    conditions: string[];
-    signature_ability: {
-      name: string;
-      description: string;
-      cooldown: number;
-    };
+    // conditions: string[];
+    // signature_ability: {
+    //   name: string;
+    //   description: string;
+    //   cooldown: number;
+    // };
   };
 }
 
@@ -306,10 +306,10 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
                       <span className="text-slate-300">Alignment: </span>
                       <span className="text-white">{character.background_info.alignment}</span>
                     </div>
-                    <div className="bg-slate-800/50 p-2 rounded">
+                    {/* <div className="bg-slate-800/50 p-2 rounded">
                       <span className="text-slate-300">Condition: </span>
                       <span className="text-white">{character.game_stats.conditions[0]}</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
@@ -372,14 +372,14 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
                     ))}
                   </div>
                   
-                  <div>
+                  {/* <div>
                     <h5 className="text-yellow-400 font-semibold text-center mb-1">Signature Ability</h5>
                     <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 p-2 rounded-lg border border-purple-400/30 text-center">
                       <div className="text-yellow-400 font-bold text-xs">{character.game_stats.signature_ability.name}</div>
                       <div className="text-xs text-slate-300">Cooldown: {character.game_stats.signature_ability.cooldown}s</div>
                       <div className="text-xs italic mt-1 text-slate-400">{character.game_stats.signature_ability.description}</div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
