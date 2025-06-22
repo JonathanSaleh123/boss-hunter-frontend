@@ -29,12 +29,7 @@ interface Character {
       total_stat_points: number;
     };
     abilities: string[];
-    // conditions: string[];
-    // signature_ability: {
-    //   name: string;
-    //   description: string;
-    //   cooldown: number;
-    // };
+
   };
 }
 

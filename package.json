@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@letta-ai/letta-client": "^0.1.132",
+    "framer-motion": "^12.18.1",
     "lucide-react": "^0.522.0",
     "next": "15.3.4",
     "postcss": "^8.5.6",

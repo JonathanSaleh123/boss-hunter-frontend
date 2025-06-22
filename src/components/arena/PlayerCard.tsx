@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Heart, Skull, User, BookOpen } from 'lucide-react';
+import { motion, useAnimation } from 'framer-motion'; // --- 1. IMPORTED from Framer Motion
 import { Character } from './types';
+import { usePrevious } from '../../hooks/usePrevious'; // --- 1. IMPORTED custom hook (adjust path if needed)
 
 const getHealthColor = (health: number, maxHealth: number) => {
     const percentage = (health / maxHealth) * 100;
@@ -24,9 +26,29 @@ interface PlayerCardProps {
 
 export const PlayerCard = ({ player, onShowDetails, playerIndex }: PlayerCardProps) => {
     const healthPercentage = (player.health / player.maxHealth) * 100;
+
+    // --- 2. SET UP animation controls and track previous health ---
+    const controls = useAnimation();
+    const prevHealth = usePrevious(player.health);
+
+    // --- 3. USEEFFECT to trigger the animation on health decrease ---
+    useEffect(() => {
+        // If prevHealth is defined and current health is less than previous, trigger the shake
+        if (prevHealth !== undefined && player.health < prevHealth) {
+            controls.start({
+                // Shake animation on the x-axis
+                x: [0, -7, 7, -7, 7, 0],
+                transition: { duration: 0.4, ease: 'easeInOut' },
+            });
+        }
+    }, [player.health, prevHealth, controls]);
     
     return (
-      <div className={`relative flex flex-col items-center transition-all duration-300`}>
+      // --- 4. CONVERTED the root div to a motion.div and linked animation controls ---
+      <motion.div 
+        animate={controls}
+        className={`relative flex flex-col items-center transition-all duration-300`}
+      >
         <div className={`relative w-56 rounded-2xl p-5 border-2 shadow-2xl transition-all duration-300 flex flex-col glass-card ${
           player.isPlayer ? 'border-cyan-400 shadow-cyan-400/50 ring-2 ring-cyan-400/30 scale-105' 
           : player.isAlive ? 'border-slate-600 hover:border-purple-400 hover:scale-105' 
@@ -60,6 +82,6 @@ export const PlayerCard = ({ player, onShowDetails, playerIndex }: PlayerCardPro
           </div>
           <button onClick={() => onShowDetails(player)} className="mt-4 w-full bg-slate-700/50 hover:bg-slate-600/70 text-slate-300 hover:text-white transition-colors text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-2"><BookOpen size={14} /> Details</button>
         </div>
-      </div>
+      </motion.div>
     );
 };

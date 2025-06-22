@@ -1,12 +1,12 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, Check, BookOpen, LogOut } from 'lucide-react';
+import { Crown, Check, BookOpen, LogOut, Music } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { Character, Boss, ChatMessage } from './arena/types';
 import { CharacterDetailsModal } from './arena/CharacterDetailsModal';
 import { PlayerCard } from './arena/PlayerCard';
 import { GameStatusDisplay } from './arena/GameStatusDisplay';
-
+import { GameOverModal } from './arena/GameOverModal'; // --- 1. IMPORT the new component
 
 const ArenaUI = () => {
   const [players, setPlayers] = useState<Character[]>([]);
@@ -20,6 +20,13 @@ const ArenaUI = () => {
   const [timer, setTimer] = useState(0);
   const [hasSubmittedAction, setHasSubmittedAction] = useState(false);
   const [detailsCharacter, setDetailsCharacter] = useState<Character | Boss | null>(null);
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  
+  // --- 2. ADD state for game over screen ---
+  const [isGameOver, setIsGameOver] = useState(false);
+
 
   useEffect(() => {
     const storedCharacterJSON = sessionStorage.getItem('character');
@@ -51,9 +58,34 @@ const ArenaUI = () => {
         setTimer(timer || 0);
     });
     newSocket.on('new_message', (newMsg) => setChatMessages(prev => [...prev.slice(-19), newMsg]));
+
+    // --- 3. LISTEN for the server's restart confirmation ---
+    newSocket.on('game_restarted', () => {
+      setIsGameOver(false);
+      // The server will likely follow up with an 'initial_state' or 'update_game_state'
+      // to provide the new data for the fresh game.
+    });
+
     return () => newSocket.disconnect();
   }, []);
+
+  // --- 4. USEEFFECT to check for the game over condition ---
+  useEffect(() => {
+    // Only check for game over if there are players and the game is not idle.
+    if (players.length > 0 && gameState !== 'IDLE' && players.every(p => !p.isAlive)) {
+      setIsGameOver(true);
+    }
+  }, [players, gameState]);
   
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = 0.1; 
+      return () => {
+        audio.pause();
+      };
+    }
+  }, []);
   
   useEffect(() => {
     if (gameState === 'WAITING_FOR_ACTIONS') setHasSubmittedAction(false);
@@ -78,10 +110,25 @@ const ArenaUI = () => {
     if (socket) socket.emit('start_game');
   };
 
-  // --- NEW: Handler for leaving the room ---
   const handleLeaveRoom = () => {
-    // The useEffect cleanup will automatically handle socket.disconnect()
     window.location.href = '/';
+  };
+  
+  // --- 5. FUNCTION to request a game restart ---
+  const handleRestartGame = () => {
+    //Reload the page to reset the game state
+    window.location.reload();
+  };
+
+  const handleToggleMusic = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isMusicPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch(e => console.error("Audio play failed:", e));
+    }
+    setIsMusicPlaying(!isMusicPlaying);
   };
 
   if (!boss || players.length === 0) {
@@ -98,23 +145,37 @@ const ArenaUI = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black p-6 overflow-hidden relative">
+      {/* --- 6. RENDER the modal when game is over --- */}
+      {isGameOver && <GameOverModal onRestart={handleRestartGame} />}
+
+      <audio ref={audioRef} src="/audio/hopes.mp3" loop />
+
       {detailsCharacter && <CharacterDetailsModal character={detailsCharacter} onClose={() => setDetailsCharacter(null)} />}
       
-      {/* --- NEW: Leave Room Button --- */}
-      <button 
-        onClick={handleLeaveRoom}
-        className="absolute top-4 right-4 z-30 flex items-center gap-2 bg-red-800/50 hover:bg-red-700/70 text-red-300 hover:text-white transition-all text-sm font-bold px-4 py-2 rounded-lg"
-      >
-        <LogOut size={16} />
-        Leave Room
-      </button>
+      <div className="absolute top-4 right-4 z-30 flex items-center gap-3">
+        <button 
+          onClick={handleToggleMusic}
+          className="flex items-center gap-2 bg-cyan-800/50 hover:bg-cyan-700/70 text-cyan-300 hover:text-white transition-all text-sm font-bold px-4 py-2 rounded-lg"
+        >
+          <Music size={16} />
+          {isMusicPlaying ? 'Mute' : 'Play Music'}
+        </button>
+
+        <button 
+          onClick={handleLeaveRoom}
+          className="flex items-center gap-2 bg-red-800/50 hover:bg-red-700/70 text-red-300 hover:text-white transition-all text-sm font-bold px-4 py-2 rounded-lg"
+        >
+          <LogOut size={16} />
+          Leave Room
+        </button>
+      </div>
 
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
           {gameState !== 'IDLE' && <GameStatusDisplay gameState={gameState} timer={timer} onStartGame={handleStartGame} />}
       </div>
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-slate-900/20 to-black/20 z-0"></div>
       <div className="absolute inset-0 cyber-grid z-0"></div>
-      <div className="flex justify-center gap-8 mb-8 relative z-10 mt-24">
+      <div className={`flex justify-center gap-8 mb-8 relative z-10 mt-24 transition-filter duration-500 ${isGameOver ? 'blur-md' : ''}`}>
         <div className={`relative glass-card rounded-3xl p-6 border-2 transition-all duration-500 shadow-2xl ${ boss.isEnraged ? 'border-red-500 shadow-red-500/30 animate-pulse' : 'border-purple-500 shadow-purple-500/20' }`}>
           <div className="flex flex-col items-center gap-4">
             <div className="relative boss-float">
@@ -152,7 +213,7 @@ const ArenaUI = () => {
           </div>
         </div>
       </div>
-      <div className="flex justify-center items-end gap-16 relative z-10">
+      <div className={`flex justify-center items-end gap-16 relative z-10 transition-filter duration-500 ${isGameOver ? 'blur-md' : ''}`}>
         {players.map((player, index) => (<React.Fragment key={player.id}><PlayerCard player={player} onShowDetails={setDetailsCharacter} playerIndex={index} />{index === 1 && (<div className="flex flex-col items-center mx-8">{<GameStatusDisplay gameState={gameState} timer={timer} onStartGame={handleStartGame}/>}</div>)}</React.Fragment>))}
         {players.length === 1 && (<div className="flex flex-col items-center mx-8"><GameStatusDisplay gameState={gameState} timer={timer} onStartGame={handleStartGame} /></div>)}
       </div>
