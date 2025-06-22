@@ -2,10 +2,11 @@
 
 import React from 'react';
 
-// The character interface remains here to be used as a type for the props
+// The character interface, updated with an optional imageUrl
 interface Character {
   name: string;
   description: string;
+  imageUrl?: string; // The image URL is optional
   background_info: {
     backstory: string;
     personality: string;
@@ -29,7 +30,6 @@ interface Character {
       total_stat_points: number;
     };
     abilities: string[];
-
   };
 }
 
@@ -37,10 +37,12 @@ interface Character {
 interface AIBossBattleUIProps {
   character: Character | null;
   isGenerating: boolean;
+  isGeneratingImage: boolean;
   error: string | null;
   formData: { name: string; description: string };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
+  handleGenerateImage: () => void;
   joinRoom: () => void;
   createRoom: () => void;
 }
@@ -48,10 +50,12 @@ interface AIBossBattleUIProps {
 const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
   character,
   isGenerating,
+  isGeneratingImage,
   error,
   formData,
   handleInputChange,
   handleSubmit,
+  handleGenerateImage,
   joinRoom,
   createRoom,
 }) => {
@@ -272,109 +276,135 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
         {/* Character Display */}
         {character && (
           <div className="glass-card rounded-2xl p-5 shadow-2xl mb-4 border-2 border-slate-600">
-            {/* ... character display JSX remains the same ... */}
             <h2 className="text-xl font-bold text-white text-center mb-4 relative">
               Your Character
               <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-slate-400 to-transparent"></div>
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-              {/* Character Info */}
-              <div className="space-y-3">
-                <div className="text-center">
-                  <h3 className="text-cyan-300 font-bold text-base">{character.name}</h3>
-                  <p className="text-slate-300 text-xs mb-2">{character.description}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-purple-300 font-semibold mb-2 text-center">Background</h4>
-                  <div className="space-y-1">
-                    <div className="bg-slate-800/50 p-2 rounded">
-                      <span className="text-slate-300">Personality: </span>
-                      <span className="text-white">{character.background_info.personality}</span>
-                    </div>
-                    <div className="bg-slate-800/50 p-2 rounded">
-                      <span className="text-slate-300">Voice: </span>
-                      <span className="text-white">{character.background_info.voice}</span>
-                    </div>
-                    <div className="bg-slate-800/50 p-2 rounded">
-                      <span className="text-slate-300">Alignment: </span>
-                      <span className="text-white">{character.background_info.alignment}</span>
-                    </div>
-                    {/* <div className="bg-slate-800/50 p-2 rounded">
-                      <span className="text-slate-300">Condition: </span>
-                      <span className="text-white">{character.game_stats.conditions[0]}</span>
-                    </div> */}
+            {/* Main grid for Character Display: Image on left, stats on right */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+              {/* === START: NEW IMAGE SECTION === */}
+              <div className="md:col-span-1 flex flex-col items-center space-y-4">
+                  <div className="w-full aspect-square bg-slate-800/50 rounded-lg flex items-center justify-center border border-slate-700">
+                      {character.imageUrl ? (
+                          <img src={character.imageUrl} alt={`Image of ${character.name}`} className="w-full h-full object-cover rounded-lg"/>
+                      ) : isGeneratingImage ? (
+                          <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                              <span className="loading"></span>
+                              <span>Generating...</span>
+                          </div>
+                      ) : (
+                          <div className="text-center text-slate-400 p-4 text-sm">
+                              Your character portrait will appear here.
+                          </div>
+                      )}
                   </div>
-                </div>
+                  <button
+                    onClick={handleGenerateImage}
+                    disabled={isGeneratingImage || isGenerating}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 px-4 rounded-lg font-bold uppercase tracking-wider hover:transform hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                      {isGeneratingImage ? (
+                          <span className="flex items-center justify-center gap-2">
+                              <span className="loading"></span>
+                              <span>Generating...</span>
+                          </span>
+                      ) : (
+                          'Generate Image'
+                      )}
+                  </button>
               </div>
-              
-              {/* Base Stats */}
-              <div>
-                <h4 className="text-purple-300 font-semibold mb-2 text-center">Base Stats</h4>
-                <div className="space-y-1">
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-green-400">
-                    <span className="text-slate-300">Health: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.general.max_health}</span>
-                  </div>
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-red-400">
-                    <span className="text-slate-300">Attack: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.general.attack}</span>
-                  </div>
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-blue-400">
-                    <span className="text-slate-300">Defense: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.general.defense}</span>
-                  </div>
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-yellow-400">
-                    <span className="text-slate-300">Speed: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.general.speed}</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Advanced Stats */}
-              <div>
-                <h4 className="text-purple-300 font-semibold mb-2 text-center">Advanced Stats</h4>
-                <div className="space-y-1">
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-green-400">
-                    <span className="text-slate-300">Luck: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.advanced.luck}</span>
-                  </div>
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-purple-400">
-                    <span className="text-slate-300">Intelligence: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.advanced.intelligence}</span>
-                  </div>
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-orange-400">
-                    <span className="text-slate-300">Agility: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.advanced.agility}</span>
-                  </div>
-                  <div className="bg-slate-800/50 p-2 rounded border-l-2 border-pink-400">
-                    <span className="text-slate-300">Endurance: </span>
-                    <span className="text-white font-bold">{character.game_stats.base_stats.advanced.endurance}</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Abilities */}
-              <div>
-                <h4 className="text-purple-300 font-semibold mb-2 text-center">Abilities</h4>
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-1">
-                    {character.game_stats.abilities.map((ability, index) => (
-                      <span key={index} className="bg-cyan-400/20 text-cyan-300 px-2 py-1 rounded-full text-xs border border-cyan-400/30">
-                        {ability}
-                      </span>
-                    ))}
+              {/* === END: NEW IMAGE SECTION === */}
+
+
+              {/* Container for all stats and info */}
+              <div className="md:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+                {/* Character Info */}
+                <div className="space-y-3">
+                  <div className="text-center lg:text-left">
+                    <h3 className="text-cyan-300 font-bold text-base">{character.name}</h3>
+                    <p className="text-slate-300 text-xs mb-2">{character.description}</p>
                   </div>
                   
-                  {/* <div>
-                    <h5 className="text-yellow-400 font-semibold text-center mb-1">Signature Ability</h5>
-                    <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 p-2 rounded-lg border border-purple-400/30 text-center">
-                      <div className="text-yellow-400 font-bold text-xs">{character.game_stats.signature_ability.name}</div>
-                      <div className="text-xs text-slate-300">Cooldown: {character.game_stats.signature_ability.cooldown}s</div>
-                      <div className="text-xs italic mt-1 text-slate-400">{character.game_stats.signature_ability.description}</div>
+                  <div>
+                    <h4 className="text-purple-300 font-semibold mb-2 text-center">Background</h4>
+                    <div className="space-y-1">
+                      {/* Using optional chaining (?.) for robustness */}
+                      <div className="bg-slate-800/50 p-2 rounded">
+                        <span className="text-slate-300">Personality: </span>
+                        <span className="text-white">{character.background_info?.personality}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded">
+                        <span className="text-slate-300">Voice: </span>
+                        <span className="text-white">{character.background_info?.voice}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded">
+                        <span className="text-slate-300">Alignment: </span>
+                        <span className="text-white">{character.background_info?.alignment}</span>
+                      </div>
                     </div>
-                  </div> */}
+                  </div>
+                </div>
+                
+                {/* Base & Advanced Stats Columns */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-purple-300 font-semibold mb-2 text-center">Base Stats</h4>
+                    <div className="space-y-1">
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-green-400">
+                        <span className="text-slate-300">Health: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.general?.max_health}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-red-400">
+                        <span className="text-slate-300">Attack: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.general?.attack}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-blue-400">
+                        <span className="text-slate-300">Defense: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.general?.defense}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-yellow-400">
+                        <span className="text-slate-300">Speed: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.general?.speed}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-purple-300 font-semibold mb-2 text-center">Advanced Stats</h4>
+                    <div className="space-y-1">
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-green-400">
+                        <span className="text-slate-300">Luck: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.advanced?.luck}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-purple-400">
+                        <span className="text-slate-300">Intelligence: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.advanced?.intelligence}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-orange-400">
+                        <span className="text-slate-300">Agility: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.advanced?.agility}</span>
+                      </div>
+                      <div className="bg-slate-800/50 p-2 rounded border-l-2 border-pink-400">
+                        <span className="text-slate-300">Endurance: </span>
+                        <span className="text-white font-bold">{character.game_stats?.base_stats?.advanced?.endurance}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Abilities */}
+                <div>
+                  <h4 className="text-purple-300 font-semibold mb-2 text-center">Abilities</h4>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-1 content-start">
+                      {character.game_stats?.abilities?.map((ability, index) => (
+                        <span key={index} className="bg-cyan-400/20 text-cyan-300 px-2 py-1 rounded-full text-xs border border-cyan-400/30">
+                          {ability}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

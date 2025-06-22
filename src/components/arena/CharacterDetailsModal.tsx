@@ -36,12 +36,13 @@ export const CharacterDetailsModal = ({ character, onClose }: CharacterDetailsMo
                 </button>
 
                 <div className="flex items-start gap-6">
-                    <img 
-                        src={character.image} 
-                        alt={character.name} 
-                        className="w-32 h-32 object-cover rounded-xl border-2 border-slate-600"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/200x300/1e293b/ffffff?text=Char'; }}
-                    />
+                {character.imageUrl ? (
+                  <img src={character.imageUrl} alt={character.name} className="w-32 h-32 object-cover rounded-xl border-2 border-slate-600" onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/200x300/1e293b/ffffff?text=Char'; }} />
+                ) : (
+                  <div className="w-32 h-32 object-cover rounded-xl border-2 border-slate-600">
+                    <span className="text-3xl font-bold text-slate-400">{character.name.substring(0, 2).toUpperCase()}</span>
+                  </div>
+                )}
                     <div className="flex-1">
                         <h2 className="text-3xl font-bold text-cyan-300">{character.name}</h2>
                         <p className="text-slate-300 mt-1">{character.description}</p>

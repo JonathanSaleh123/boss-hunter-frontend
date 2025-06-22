@@ -2,6 +2,7 @@ export interface Character {
   id: string; // Socket ID
   name: string;
   description: string;
+  imageUrl?: string;
   background_info: {
     backstory: string;
     personality: string;

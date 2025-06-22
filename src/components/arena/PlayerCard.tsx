@@ -61,7 +61,13 @@ export const PlayerCard = ({ player, onShowDetails, playerIndex }: PlayerCardPro
           <div className="flex-1">
             <div className="relative mb-4">
               <div className={`w-36 h-44 rounded-xl overflow-hidden border-2 ${ player.isPlayer ? 'border-cyan-400' : 'border-slate-600' } bg-slate-800 mx-auto`}>
-                <img src={player.image} alt={player.name} className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/200x300/1e293b/ffffff?text=Char'; }} />
+                {player.imageUrl ? (
+                  <img src={player.imageUrl} alt={player.name} className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/200x300/1e293b/ffffff?text=Char'; }} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-700">
+                    <span className="text-3xl font-bold text-slate-400">{player.name.substring(0, 2).toUpperCase()}</span>
+                  </div>
+                )}
               </div>
               <div className={`absolute -top-2 -right-2 rounded-full w-7 h-7 flex items-center justify-center ${ player.isPlayer ? 'bg-gradient-to-r from-cyan-500 to-blue-500 ring-2 ring-cyan-300' : 'bg-gradient-to-r from-purple-500 to-pink-500' }`}>
                 {player.isPlayer ? <User className="w-4 h-4 text-white" /> : <span className="text-white text-xs font-bold">{playerIndex + 1}</span> }

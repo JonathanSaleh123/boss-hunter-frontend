@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AIBossBattleUI from './CharacterCreationUI'; // This is your character creation UI
+import AIBossBattleUI from './landing/CharacterCreationUI'; // This is your character creation UI
 
-// The character interface remains the same
+// The character interface, updated with an optional imageUrl
 interface Character {
   name: string;
   description: string;
+  imageUrl?: string;
   background_info: {
     backstory: string;
     personality: string;
@@ -31,6 +32,7 @@ interface Character {
       total_stat_points: number;
     };
     abilities: string[];
+
   };
 }
 
@@ -38,6 +40,7 @@ const AIBossBattle: React.FC = () => {
   const router = useRouter();
   const [character, setCharacter] = useState<Character | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -101,37 +104,66 @@ const AIBossBattle: React.FC = () => {
       [e.target.name]: e.target.value
     });
   };
+
+  // New function to handle the image generation API call
+  const handleGenerateImage = async () => {
+      if (!character) {
+          alert('Please generate a character first.');
+          return;
+      }
+
+      setIsGeneratingImage(true);
+      setError(null);
+
+      try {
+          const response = await fetch('/api/generate-character-image', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  name: character.name,
+                  description: character.description,
+              }),
+          });
+
+          if (!response.ok) {
+              const errData = await response.json();
+              throw new Error(errData.error || 'Failed to generate image');
+          }
+
+          const { imageUrl } = await response.json();
+          // Update the character state with the new image URL
+          setCharacter(prevCharacter => prevCharacter ? { ...prevCharacter, imageUrl } : null);
+
+      } catch (err) {
+          setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      } finally {
+          setIsGeneratingImage(false);
+      }
+  };
   
-  // Update the functions to handle navigation
   const navigateToArena = () => {
     if (character) {
-      // Save the character object to session storage
       sessionStorage.setItem('character', JSON.stringify(character));
-      // Navigate to the arena page
       router.push('/arena');
     } else {
       alert('Please generate a character first!');
     }
   };
 
-  const joinRoom = () => {
-    navigateToArena();
-  };
-
-  const createRoom = () => {
-    navigateToArena();
-  };
-
   return (
     <AIBossBattleUI
       character={character}
       isGenerating={isGenerating}
+      isGeneratingImage={isGeneratingImage} // Pass the new state to the UI
       error={error}
       formData={formData}
       handleInputChange={handleInputChange}
       handleSubmit={handleSubmit}
-      joinRoom={joinRoom}
-      createRoom={createRoom}
+      handleGenerateImage={handleGenerateImage} // Pass the new function to the UI
+      joinRoom={navigateToArena}
+      createRoom={navigateToArena}
     />
   );
 };
