@@ -40,11 +40,13 @@ interface Character {
 const AIBossBattle: React.FC = () => {
   const [character, setCharacter] = useState<Character | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: ''
   });
 
+  // UII
   useEffect(() => {
     createParticles();
   }, []);
@@ -64,97 +66,35 @@ const AIBossBattle: React.FC = () => {
       particlesContainer.appendChild(particle);
     }
   };
-
-  const generateCharacter = (name: string, description: string): Character => {
-    const alignments = ['Heroic', 'Neutral', 'Chaotic', 'Lawful', 'Rebel'];
-    const voices = ['Commanding', 'Mysterious', 'Cheerful', 'Gruff', 'Ethereal'];
-    const personalities = ['Brave', 'Cunning', 'Wise', 'Reckless', 'Stoic'];
-    const conditions = ['Blessed', 'Cursed', 'Enhanced', 'Weakened', 'Neutral'];
-    
-    const baseHealthPool = 400;
-    const baseStatPool = 100;
-    
-    const stats = {
-      max_health: Math.floor(Math.random() * 200) + baseHealthPool,
-      speed: Math.floor(Math.random() * baseStatPool) + 50,
-      attack: Math.floor(Math.random() * baseStatPool) + 50,
-      defense: Math.floor(Math.random() * baseStatPool) + 50,
-      luck: Math.floor(Math.random() * 50) + 25,
-      intelligence: Math.floor(Math.random() * 50) + 25,
-      agility: Math.floor(Math.random() * 50) + 25,
-      endurance: Math.floor(Math.random() * 50) + 25
-    };
-    
-    const abilities = [
-      'Quick Strike', 'Energy Blast', 'Shield Wall', 'Stealth Mode',
-      'Power Surge', 'Healing Aura', 'Time Dilation', 'Mind Control'
-    ];
-    
-    const signatureAbilities = [
-      { name: 'Ultimate Devastation', desc: 'Unleashes maximum power in a devastating attack' },
-      { name: 'Reality Warp', desc: 'Bends the fabric of reality to the user\'s will' },
-      { name: 'Phoenix Rise', desc: 'Resurrects with enhanced abilities after defeat' },
-      { name: 'Dimensional Rift', desc: 'Opens portals to other dimensions for tactical advantage' }
-    ];
-    
-    const selectedAbilities = [];
-    for (let i = 0; i < 3; i++) {
-      const randomAbility = abilities[Math.floor(Math.random() * abilities.length)];
-      if (!selectedAbilities.includes(randomAbility)) {
-        selectedAbilities.push(randomAbility);
-      }
-    }
-    
-    const sigAbility = signatureAbilities[Math.floor(Math.random() * signatureAbilities.length)];
-    
-    return {
-      name,
-      description,
-      background_info: {
-        backstory: `Born from ${description.toLowerCase()}, ${name} has risen to become a legendary warrior.`,
-        personality: personalities[Math.floor(Math.random() * personalities.length)],
-        voice: voices[Math.floor(Math.random() * voices.length)],
-        alignment: alignments[Math.floor(Math.random() * alignments.length)]
-      },
-      game_stats: {
-        base_stats: {
-          general: {
-            max_health: stats.max_health,
-            speed: stats.speed,
-            attack: stats.attack,
-            defense: stats.defense
-          },
-          advanced: {
-            luck: stats.luck,
-            intelligence: stats.intelligence,
-            agility: stats.agility,
-            endurance: stats.endurance
-          },
-          total_stat_points: 500
-        },
-        abilities: selectedAbilities,
-        conditions: [conditions[Math.floor(Math.random() * conditions.length)]],
-        signature_ability: {
-          name: sigAbility.name,
-          description: sigAbility.desc,
-          cooldown: Math.floor(Math.random() * 10) + 5
-        }
-      }
-    };
-  };
-
+  // Handle form submission for character creation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.description) return;
-    
+
     setIsGenerating(true);
-    
-    // Simulate generation time
-    setTimeout(() => {
-      const newCharacter = generateCharacter(formData.name, formData.description);
+    setError(null);
+    setCharacter(null);
+
+    try {
+      const response = await fetch('/api/create-character', { // Assuming the route is at /api/route
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate character');
+      }
+
+      const newCharacter = await response.json();
       setCharacter(newCharacter);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -164,12 +104,13 @@ const AIBossBattle: React.FC = () => {
     });
   };
 
+
   const joinRoom = () => {
-    alert('🎮 Connecting to existing battle room...\n\nThis feature would connect you to an ongoing battle!');
+    alert('式 Connecting to existing battle room...\n\nThis feature would connect you to an ongoing battle!');
   };
 
   const createRoom = () => {
-    alert('🚀 Creating new battle room...\n\nThis feature would set up a new arena for you to host!');
+    alert('噫 Creating new battle room...\n\nThis feature would set up a new arena for you to host!');
   };
 
   return (
@@ -306,8 +247,7 @@ const AIBossBattle: React.FC = () => {
               <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
             </h2>
             <div className="boss-image w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl shadow-lg shadow-purple-500/50">
-              🤖
-            </div>
+              ､�            </div>
             <div className="text-center">
               <h3 className="text-lg font-bold text-purple-300 mb-2">NEURAL TYRANT</h3>
               <p className="text-slate-300 text-xs mb-3 leading-relaxed">
@@ -379,6 +319,12 @@ const AIBossBattle: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        {error && (
+            <div className="glass-card rounded-2xl p-5 shadow-2xl mb-4 border-2 border-red-500 text-center">
+                <p className="text-red-400">{error}</p>
+            </div>
+        )}
 
         {/* Bottom Section - Character Display and Battle Controls */}
         {character && (
