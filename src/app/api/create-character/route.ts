@@ -56,7 +56,26 @@ export async function POST(request: NextRequest) {
       },
       "total_stat_points": 500
     },
-    "abilities": ["string", "string", "string"]
+    "abilities": [
+      {
+        "name": "string",
+        "type": "Passive" | "Buff" | "Attack",
+        "description": "string",
+        "cooldown": "number | null"
+      },
+      {
+        "name": "string",
+        "type": "Passive" | "Buff" | "Attack",
+        "description": "string",
+        "cooldown": "number | null"
+      },
+      {
+        "name": "string",
+        "type": "Passive" | "Buff" | "Attack",
+        "description": "string",
+        "cooldown": "number | null"
+      }
+    ]
   }
 }
 `,

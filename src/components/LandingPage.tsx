@@ -47,6 +47,11 @@ const AIBossBattle: React.FC = () => {
     description: ''
   });
 
+  // --- New State for Editing ---
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableCharacter, setEditableCharacter] = useState<Character | null>(null);
+
+
   useEffect(() => {
     createParticles();
   }, []);
@@ -54,8 +59,8 @@ const AIBossBattle: React.FC = () => {
   const createParticles = () => {
     const particlesContainer = document.getElementById('particles');
     if (!particlesContainer) return;
-    
-    particlesContainer.innerHTML = ''; 
+
+    particlesContainer.innerHTML = '';
     for (let i = 0; i < 15; i++) {
       const particle = document.createElement('div');
       particle.className = 'particle';
@@ -105,7 +110,6 @@ const AIBossBattle: React.FC = () => {
     });
   };
 
-  // New function to handle the image generation API call
   const handleGenerateImage = async () => {
       if (!character) {
           alert('Please generate a character first.');
@@ -133,7 +137,6 @@ const AIBossBattle: React.FC = () => {
           }
 
           const { imageUrl } = await response.json();
-          // Update the character state with the new image URL
           setCharacter(prevCharacter => prevCharacter ? { ...prevCharacter, imageUrl } : null);
 
       } catch (err) {
@@ -142,7 +145,36 @@ const AIBossBattle: React.FC = () => {
           setIsGeneratingImage(false);
       }
   };
-  
+
+  // --- New Functions for Editing ---
+  const handleEditClick = () => {
+    setEditableCharacter(JSON.parse(JSON.stringify(character))); // Deep copy
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditableCharacter(null);
+  };
+
+  const handleSaveEdit = () => {
+    setCharacter(editableCharacter);
+    setIsEditing(false);
+  };
+
+  const handleStatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (editableCharacter) {
+        const newStats = { ...editableCharacter.game_stats };
+        if (name in newStats.base_stats.general) {
+            newStats.base_stats.general[name] = parseInt(value, 10) || 0;
+        } else if (name in newStats.base_stats.advanced) {
+            newStats.base_stats.advanced[name] = parseInt(value, 10) || 0;
+        }
+        setEditableCharacter({ ...editableCharacter, game_stats: newStats });
+    }
+  };
+
   const navigateToArena = () => {
     if (character) {
       sessionStorage.setItem('character', JSON.stringify(character));
@@ -156,14 +188,21 @@ const AIBossBattle: React.FC = () => {
     <AIBossBattleUI
       character={character}
       isGenerating={isGenerating}
-      isGeneratingImage={isGeneratingImage} // Pass the new state to the UI
+      isGeneratingImage={isGeneratingImage}
       error={error}
       formData={formData}
       handleInputChange={handleInputChange}
       handleSubmit={handleSubmit}
-      handleGenerateImage={handleGenerateImage} // Pass the new function to the UI
+      handleGenerateImage={handleGenerateImage}
       joinRoom={navigateToArena}
       createRoom={navigateToArena}
+      // --- Pass Editing Props ---
+      isEditing={isEditing}
+      editableCharacter={editableCharacter}
+      handleEditClick={handleEditClick}
+      handleCancelEdit={handleCancelEdit}
+      handleSaveEdit={handleSaveEdit}
+      handleStatChange={handleStatChange}
     />
   );
 };
