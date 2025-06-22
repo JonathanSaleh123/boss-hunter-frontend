@@ -2,11 +2,19 @@
 
 import React from 'react';
 
-// The character interface, updated with an optional imageUrl
+// The new Ability interface
+interface Ability {
+  name: string;
+  type: "Passive" | "Buff" | "Attack" | string;
+  description: string;
+  cooldown: number | null; // null if passive or no cooldown
+}
+
+// The character interface, updated to use the Ability interface and include statusEffects
 interface Character {
   name: string;
   description: string;
-  imageUrl?: string; // The image URL is optional
+  imageUrl?: string;
   background_info: {
     backstory: string;
     personality: string;
@@ -29,15 +37,8 @@ interface Character {
       };
       total_stat_points: number;
     };
-    abilities: Ability[];
-    statusEffects: string[];
+    abilities: Ability[]; // Updated from string[]
   };
-}
-interface Ability {
-  name: string;
-  type: "Passive" | "Buff" | "Attack" | string;
-  description: string;
-  cooldown: number | null; // Use null if the ability is passive or has no cooldown
 }
 
 // Define the props that the UI component will accept
@@ -52,7 +53,6 @@ interface AIBossBattleUIProps {
   handleGenerateImage: () => void;
   joinRoom: () => void;
   createRoom: () => void;
-  // --- New Props for Editing ---
   isEditing: boolean;
   editableCharacter: Character | null;
   handleEditClick: () => void;
@@ -86,7 +86,6 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
   handleGenerateImage,
   joinRoom,
   createRoom,
-  // --- Destructure New Props ---
   isEditing,
   editableCharacter,
   handleEditClick,
@@ -443,18 +442,42 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="text-purple-300 font-semibold mb-2 text-center">Abilities</h4>
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-1 content-start">
-                      {character.game_stats?.abilities?.map((ability, index) => (
-                        <span key={index} className="bg-cyan-400/20 text-cyan-300 px-2 py-1 rounded-full text-xs border border-cyan-400/30">
-                          {ability}
-                        </span>
-                      ))}
+                {/* === START: UPDATED ABILITIES AND NEW STATUS EFFECTS SECTION === */}
+                <div className="lg:col-span-1 space-y-4">
+                    <div>
+                        <h4 className="text-purple-300 font-semibold mb-2 text-center">Abilities</h4>
+                        <div className="space-y-2">
+                            {character.game_stats?.abilities?.map((ability, index) => (
+                                <div key={index} className="bg-slate-800/50 p-2 rounded border-l-2 border-cyan-400">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-bold text-cyan-300">{ability.name}</span>
+                                        <span className="text-xs bg-cyan-400/20 text-cyan-300 px-2 py-0.5 rounded-full">{ability.type}</span>
+                                    </div>
+                                    <p className="text-slate-300 text-xs mt-1">{ability.description}</p>
+                                    {ability.cooldown !== null && (
+                                        <p className="text-xs text-slate-400 mt-1">Cooldown: {ability.cooldown} turns</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                  </div>
+                    <div>
+                        <h4 className="text-purple-300 font-semibold mb-2 text-center">Status Effects</h4>
+                        <div className="flex flex-wrap gap-1 content-start">
+                            {character.game_stats?.statusEffects?.length > 0 ? (
+                                character.game_stats.statusEffects.map((effect, index) => (
+                                    <span key={index} className="bg-red-400/20 text-red-300 px-2 py-1 rounded-full text-xs border border-red-400/30">
+                                        {effect}
+                                    </span>
+                                ))
+                            ) : (
+                                <p className="text-slate-400 text-center w-full text-xs">None</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
+                {/* === END: UPDATED ABILITIES AND NEW STATUS EFFECTS SECTION === */}
+
               </div>
             </div>
           </div>

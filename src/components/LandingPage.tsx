@@ -2,9 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AIBossBattleUI from './landing/CharacterCreationUI'; // This is your character creation UI
+import AIBossBattleUI from './landing/CharacterCreationUI';
 
-// The character interface, updated with an optional imageUrl
+// The new Ability interface
+interface Ability {
+  name: string;
+  type: "Passive" | "Buff" | "Attack" | string;
+  description: string;
+  cooldown: number | null; // null if passive or no cooldown
+}
+
+// The character interface, updated to use the Ability interface and include statusEffects
 interface Character {
   name: string;
   description: string;
@@ -31,8 +39,8 @@ interface Character {
       };
       total_stat_points: number;
     };
-    abilities: string[];
-
+    abilities: Ability[]; // Updated from string[]
+    statusEffects?: string[]; // Optional status effects array
   };
 }
 
@@ -47,7 +55,6 @@ const AIBossBattle: React.FC = () => {
     description: ''
   });
 
-  // --- New State for Editing ---
   const [isEditing, setIsEditing] = useState(false);
   const [editableCharacter, setEditableCharacter] = useState<Character | null>(null);
 
@@ -94,7 +101,14 @@ const AIBossBattle: React.FC = () => {
         throw new Error(errData.error || 'Failed to generate character');
       }
 
-      const newCharacter = await response.json();
+      // The API is now expected to return the new Character structure
+      const newCharacter: Character = await response.json();
+      
+      // Example of adding status effects if the API doesn't provide them initially
+      if (!newCharacter.game_stats.statusEffects) {
+        newCharacter.game_stats.statusEffects = [];
+      }
+      
       setCharacter(newCharacter);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -146,7 +160,6 @@ const AIBossBattle: React.FC = () => {
       }
   };
 
-  // --- New Functions for Editing ---
   const handleEditClick = () => {
     setEditableCharacter(JSON.parse(JSON.stringify(character))); // Deep copy
     setIsEditing(true);
@@ -196,7 +209,6 @@ const AIBossBattle: React.FC = () => {
       handleGenerateImage={handleGenerateImage}
       joinRoom={navigateToArena}
       createRoom={navigateToArena}
-      // --- Pass Editing Props ---
       isEditing={isEditing}
       editableCharacter={editableCharacter}
       handleEditClick={handleEditClick}

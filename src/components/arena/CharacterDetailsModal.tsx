@@ -1,6 +1,6 @@
 import React from 'react';
-import { X } from 'lucide-react';
-import { Character, Boss } from './types';
+import { X, Zap, Shield, Swords, HeartPulse } from 'lucide-react';
+import { Character, Boss, Ability } from './types'; // Assuming types are in './types'
 
 interface CharacterDetailsModalProps {
   character: Character | Boss;
@@ -21,6 +21,39 @@ const InfoTag = ({ label, value, colorClass }: { label: string, value: string, c
     </div>
 );
 
+// New component to render a single ability with details
+const AbilityCard = ({ ability }: { ability: Ability }) => {
+    const getAbilityIcon = (type: string) => {
+        switch (type.toLowerCase()) {
+            case 'attack':
+                return <Swords size={16} className="text-red-400" />;
+            case 'buff':
+                return <Shield size={16} className="text-green-400" />;
+            case 'passive':
+                return <HeartPulse size={16} className="text-yellow-400" />;
+            default:
+                return <Zap size={16} className="text-cyan-400" />;
+        }
+    };
+    
+    return (
+        <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 w-full">
+            <div className="flex justify-between items-center mb-1">
+                <div className="flex items-center gap-2">
+                    {getAbilityIcon(ability.type)}
+                    <span className="font-bold text-base text-cyan-300">{ability.name}</span>
+                </div>
+                <span className="text-xs bg-cyan-900/80 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-700">{ability.type}</span>
+            </div>
+            <p className="text-sm text-slate-300 ml-1">{ability.description}</p>
+            {ability.cooldown !== null && (
+                <p className="text-xs text-slate-400 mt-2 text-right">Cooldown: {ability.cooldown} turns</p>
+            )}
+        </div>
+    );
+};
+
+
 export const CharacterDetailsModal = ({ character, onClose }: CharacterDetailsModalProps) => {
     return (
         <div 
@@ -39,7 +72,7 @@ export const CharacterDetailsModal = ({ character, onClose }: CharacterDetailsMo
                 {character.imageUrl ? (
                   <img src={character.imageUrl} alt={character.name} className="w-32 h-32 object-cover rounded-xl border-2 border-slate-600" onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/200x300/1e293b/ffffff?text=Char'; }} />
                 ) : (
-                  <div className="w-32 h-32 object-cover rounded-xl border-2 border-slate-600">
+                  <div className="w-32 h-32 object-cover rounded-xl border-2 border-slate-600 flex items-center justify-center bg-slate-800">
                     <span className="text-3xl font-bold text-slate-400">{character.name.substring(0, 2).toUpperCase()}</span>
                   </div>
                 )}
@@ -72,16 +105,33 @@ export const CharacterDetailsModal = ({ character, onClose }: CharacterDetailsMo
                                 <StatItem name="Luck" value={character.game_stats.base_stats.advanced.luck} />
                             </div>
                         </div>
+                        
+                        {/* === UPDATED ABILITIES SECTION === */}
                         <div>
                             <h3 className="font-bold text-lg text-white mb-2 border-b-2 border-slate-700 pb-1">Abilities</h3>
-                             <div className="flex flex-wrap gap-2">
+                             <div className="flex flex-col gap-2">
                                 {character.game_stats.abilities.map(ability => (
-                                    <div key={ability} className="bg-cyan-900/50 text-cyan-300 text-sm font-medium px-3 py-1 rounded-full border border-cyan-700">
-                                        {ability}
-                                    </div>
+                                    <AbilityCard key={ability.name} ability={ability} />
                                 ))}
                             </div>
                         </div>
+
+                        {/* === NEW STATUS EFFECTS SECTION === */}
+                        <div>
+                            <h3 className="font-bold text-lg text-white mb-2 border-b-2 border-slate-700 pb-1">Status Effects</h3>
+                             <div className="flex flex-wrap gap-2">
+                                {character.game_stats.statusEffects && character.game_stats.statusEffects.length > 0 ? (
+                                    character.game_stats.statusEffects.map(effect => (
+                                        <div key={effect} className="bg-red-900/50 text-red-300 text-sm font-medium px-3 py-1 rounded-full border border-red-700">
+                                            {effect}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-slate-500">None</p>
+                                )}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
