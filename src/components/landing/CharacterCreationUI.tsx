@@ -24,6 +24,8 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
   handleCancelEdit,
   handleSaveEdit,
   handleStatChange,
+  isSelectedFromLibrary = false,
+  onBackToLibrary,
 }) => {
   const currentCharacter = isEditing ? editableCharacter : character;
 
@@ -45,13 +47,32 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <BossDisplay />
-          <CharacterForm
-            formData={formData}
-            handleInputChange={handleInputChange}
-            handleSubmit={handleSubmit}
-            isGenerating={isGenerating}
-            isEditing={isEditing}
-          />
+          {!isSelectedFromLibrary ? (
+            <CharacterForm
+              formData={formData}
+              handleInputChange={handleInputChange}
+              handleSubmit={handleSubmit}
+              isGenerating={isGenerating}
+              isEditing={isEditing}
+            />
+          ) : (
+            <div className="glass-card rounded-2xl p-5 shadow-2xl border-2 border-green-400 shadow-green-400/20">
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Character Selected!</h3>
+                <p className="text-slate-300 text-sm">
+                  You've successfully selected a character from your library.
+                </p>
+                <p className="text-slate-400 text-xs mt-2">
+                  Review the stats below and head to the arena when ready.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
         
         {error && (
@@ -72,6 +93,8 @@ const AIBossBattleUI: React.FC<AIBossBattleUIProps> = ({
             handleSaveEdit={handleSaveEdit}
             handleStatChange={handleStatChange}
             handleGenerateImage={handleGenerateImage}
+            isSelectedFromLibrary={isSelectedFromLibrary}
+            onBackToLibrary={onBackToLibrary}
           />
         )}
         

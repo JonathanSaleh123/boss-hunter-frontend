@@ -44,7 +44,10 @@ export interface AIBossBattleUIProps {
   isGenerating: boolean;
   isGeneratingImage: boolean;
   error: string | null;
-  formData: { name: string; description: string };
+  formData: {
+    name: string;
+    description: string;
+  };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   handleGenerateImage: () => void;
@@ -56,6 +59,8 @@ export interface AIBossBattleUIProps {
   handleCancelEdit: () => void;
   handleSaveEdit: () => void;
   handleStatChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isSelectedFromLibrary?: boolean;
+  onBackToLibrary?: () => void;
 }
 
 // Props for StatInput component

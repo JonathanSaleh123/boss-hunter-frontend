@@ -13,6 +13,8 @@ interface CharacterDisplayProps {
   handleSaveEdit: () => void;
   handleStatChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleGenerateImage: () => void;
+  isSelectedFromLibrary?: boolean;
+  onBackToLibrary?: () => void;
 }
 
 const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
@@ -26,36 +28,55 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
   handleSaveEdit,
   handleStatChange,
   handleGenerateImage,
+  isSelectedFromLibrary = false,
+  onBackToLibrary,
 }) => {
   return (
     <div className="glass-card rounded-2xl p-5 shadow-2xl mb-4 border-2 border-slate-600">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white text-center relative">
-          Your Character
-        </h2>
-        {!isEditing ? (
-          <button
-            onClick={handleEditClick}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-lg font-bold text-xs uppercase"
-          >
-            Edit Stats
-          </button>
-        ) : (
-          <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-white text-center relative">
+            {isSelectedFromLibrary ? 'Selected Character' : 'Your Character'}
+          </h2>
+          {isSelectedFromLibrary && (
+            <span className="bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs border border-green-400/30">
+              From Library
+            </span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {isSelectedFromLibrary && onBackToLibrary && (
             <button
-              onClick={handleSaveEdit}
-              className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-lg font-bold text-xs uppercase"
+              onClick={onBackToLibrary}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white py-1 px-3 rounded-lg font-bold text-xs uppercase"
             >
-              Save
+              Back to Library
             </button>
+          )}
+          {!isEditing ? (
             <button
-              onClick={handleCancelEdit}
-              className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-lg font-bold text-xs uppercase"
+              onClick={handleEditClick}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-lg font-bold text-xs uppercase"
             >
-              Cancel
+              Edit Stats
             </button>
-          </div>
-        )}
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={handleSaveEdit}
+                className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-lg font-bold text-xs uppercase"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-lg font-bold text-xs uppercase"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="md:col-span-1 flex flex-col items-center space-y-4">

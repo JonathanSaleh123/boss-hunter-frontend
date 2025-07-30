@@ -212,6 +212,16 @@ const AIBossBattle: React.FC = () => {
     setSelectedFromLibrary(selectedChar);
     setCharacter(convertedCharacter);
     setError(null);
+    
+    // Clear form data since we're not creating a new character
+    setFormData({ name: '', description: '' });
+    
+    // Switch back to create mode to show the character details
+    setMode('create');
+  };
+
+  const handleBackToLibrary = () => {
+    setMode('select');
   };
 
   const navigateToArena = () => {
@@ -286,6 +296,8 @@ const AIBossBattle: React.FC = () => {
             handleCancelEdit={handleCancelEdit}
             handleSaveEdit={handleSaveEdit}
             handleStatChange={handleStatChange}
+            isSelectedFromLibrary={!!selectedFromLibrary}
+            onBackToLibrary={handleBackToLibrary}
           />
         ) : (
           <div className="space-y-6">
