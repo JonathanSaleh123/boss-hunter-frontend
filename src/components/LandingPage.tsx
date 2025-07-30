@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AIBossBattleUI from './landing/CharacterCreationUI';
+import UserStats from './UserStats';
+import { Character as ApiCharacter } from '@/lib/api';
+import { CharacterCreationStyles } from './landing/styles';
 
 // The new Ability interface
 interface Ability {
@@ -57,6 +60,10 @@ const AIBossBattle: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editableCharacter, setEditableCharacter] = useState<Character | null>(null);
+  
+  // New state for character selection mode
+  const [mode, setMode] = useState<'create' | 'select'>('create');
+  const [selectedFromLibrary, setSelectedFromLibrary] = useState<ApiCharacter | null>(null);
 
 
   useEffect(() => {
@@ -180,42 +187,136 @@ const AIBossBattle: React.FC = () => {
     if (editableCharacter) {
         const newStats = { ...editableCharacter.game_stats };
         if (name in newStats.base_stats.general) {
-            newStats.base_stats.general[name] = parseInt(value, 10) || 0;
+            (newStats.base_stats.general as any)[name] = parseInt(value, 10) || 0;
         } else if (name in newStats.base_stats.advanced) {
-            newStats.base_stats.advanced[name] = parseInt(value, 10) || 0;
+            (newStats.base_stats.advanced as any)[name] = parseInt(value, 10) || 0;
         }
         setEditableCharacter({ ...editableCharacter, game_stats: newStats });
     }
   };
 
+  const handleCharacterSelect = (selectedChar: ApiCharacter) => {
+    // Convert API character format to local Character format for compatibility
+    const convertedCharacter: Character = {
+      name: selectedChar.name,
+      description: selectedChar.description,
+      imageUrl: selectedChar.imageUrl,
+      background_info: selectedChar.background_info,
+      game_stats: {
+        base_stats: selectedChar.game_stats.base_stats,
+        abilities: selectedChar.game_stats.abilities,
+        statusEffects: selectedChar.game_stats.statusEffects || []
+      }
+    };
+    
+    setSelectedFromLibrary(selectedChar);
+    setCharacter(convertedCharacter);
+    setError(null);
+  };
+
   const navigateToArena = () => {
-    if (character) {
-      sessionStorage.setItem('character', JSON.stringify(character));
+    const characterToUse = character;
+    if (characterToUse) {
+      sessionStorage.setItem('character', JSON.stringify(characterToUse));
       router.push('/arena');
     } else {
-      alert('Please generate a character first!');
+      alert('Please generate or select a character first!');
     }
   };
 
   return (
-    <AIBossBattleUI
-      character={character}
-      isGenerating={isGenerating}
-      isGeneratingImage={isGeneratingImage}
-      error={error}
-      formData={formData}
-      handleInputChange={handleInputChange}
-      handleSubmit={handleSubmit}
-      handleGenerateImage={handleGenerateImage}
-      joinRoom={navigateToArena}
-      createRoom={navigateToArena}
-      isEditing={isEditing}
-      editableCharacter={editableCharacter}
-      handleEditClick={handleEditClick}
-      handleCancelEdit={handleCancelEdit}
-      handleSaveEdit={handleSaveEdit}
-      handleStatChange={handleStatChange}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white overflow-hidden relative">
+      <CharacterCreationStyles />
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-slate-900/20 to-black/20 z-0"></div>
+      <div className="cyber-grid"></div>
+      <div id="particles" className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1]"></div>
+      <div className="container mx-auto px-4 py-4 max-w-7xl relative z-10">
+        <header className="text-center mb-6">
+          <h1 className="text-4xl md:text-5xl font-black title-gradient mb-2">
+            Boss.AI
+          </h1>
+          <p className="text-lg text-slate-400 mb-4">
+            Enter the Arena. Face the Machine. Prove Your Worth.
+          </p>
+        </header>
+        
+        {/* Mode Toggle */}
+        <div className="flex justify-center mb-6">
+          <div className="glass-card rounded-2xl p-2 shadow-2xl border-2 border-slate-600">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setMode('create')}
+                className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                  mode === 'create'
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Create New Character
+              </button>
+              <button
+                onClick={() => setMode('select')}
+                className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                  mode === 'select'
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Select Existing Character
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {mode === 'create' ? (
+          <AIBossBattleUI
+            character={character}
+            isGenerating={isGenerating}
+            isGeneratingImage={isGeneratingImage}
+            error={error}
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+            handleGenerateImage={handleGenerateImage}
+            joinRoom={navigateToArena}
+            createRoom={navigateToArena}
+            isEditing={isEditing}
+            editableCharacter={editableCharacter}
+            handleEditClick={handleEditClick}
+            handleCancelEdit={handleCancelEdit}
+            handleSaveEdit={handleSaveEdit}
+            handleStatChange={handleStatChange}
+          />
+        ) : (
+          <div className="space-y-6">
+            <UserStats onCharacterSelect={handleCharacterSelect} />
+            
+            {character && (
+              <div className="glass-card rounded-2xl p-4 shadow-2xl border-2 border-slate-600">
+                <h2 className="text-xl font-bold text-white text-center mb-3 relative">
+                  Ready to Battle with {character.name}?
+                  <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-slate-400 to-transparent"></div>
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
+                  <button
+                    onClick={navigateToArena}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 px-4 rounded-lg font-bold uppercase tracking-wider hover:transform hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/30 transition-all text-sm"
+                  >
+                    Join Room
+                  </button>
+                  <button
+                    onClick={navigateToArena}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-2 px-4 rounded-lg font-bold uppercase tracking-wider hover:transform hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-500/30 transition-all text-sm"
+                  >
+                    Create Room
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

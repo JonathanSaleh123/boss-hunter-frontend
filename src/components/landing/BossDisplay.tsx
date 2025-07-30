@@ -9,7 +9,7 @@ const BossDisplay: React.FC = () => {
       </h2>
       <div className="boss-image w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl shadow-lg shadow-purple-500/50 overflow-hidden">
         <img 
-          src="https://oaidalleapiprodscus.blob.core.windows.net/private/org-wjzyvmRjFIezvYsgRjuutE6i/user-hrHYhNiVUGGPGrx0EvJQka6T/img-5WBoy9QLzSHmXlbjtTLRBi1P.png?st=2025-06-22T20%3A15%3A33Z&se=2025-06-22T22%3A15%3A33Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=8b33a531-2df9-46a3-bc02-d4b1430a422c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-06-22T10%3A36%3A23Z&ske=2025-06-23T10%3A36%3A23Z&sks=b&skv=2024-08-04&sig=IGZanYRMK6qm6qKnu5vKoDhJ6zY%2BQIXkV%2Bjk67DlMy4%3D" 
+          src="https://fastly.picsum.photos/id/91/3504/2336.jpg?hmac=tK6z7RReLgUlCuf4flDKeg57o6CUAbgklgLsGL0UowU" 
           alt="Ancient Shadow Drake" 
           className="w-full h-full object-cover" 
         />
